@@ -35,4 +35,10 @@ public class Health : MonoBehaviour, IResettable
         _currentHealth = maxHealth;
         print($"RESET. VIDA: {_currentHealth}");
     }
+
+    public int CurrentHealth => _currentHealth;
+    public int MaxHealth => maxHealth;
+    public float HealthPercentage => maxHealth > 0
+    ? (float)_currentHealth / maxHealth
+    : 0f;
 }
