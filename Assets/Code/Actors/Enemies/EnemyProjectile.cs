@@ -23,13 +23,17 @@ public class EnemyProjectile : MonoBehaviour
         _projectileSpeed = projectileSpeed;
         damage = projectileDamage;
     }
+
     private void OnTriggerEnter(Collider other)
     {
-        Health health = other.GetComponent<Collider>().GetComponentInParent<Health>();
-
-        if (health != null)
+        // Resuelve el problema de pedirle al collider su propio collider
+        if (other.TryGetComponent<Health>(out var health) || other.GetComponentInParent<Health>())
         {
-            health.TakeDamage(damage);
+            Health targetHealth = health != null ? health : other.GetComponentInParent<Health>();
+            if (targetHealth != null)
+            {
+                targetHealth.TakeDamage(damage);
+            }
         }
 
         Destroy(gameObject);

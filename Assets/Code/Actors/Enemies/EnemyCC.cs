@@ -15,21 +15,34 @@ public class EnemyCC : MonoBehaviour
     private NavMeshAgent _agent;
     private float _nextAttackTime;
     private Health _playerHealth;
+    private float _sqrAttackDistance;
 
     private void Start()
     {
         _agent = GetComponent<NavMeshAgent>();
-        if (player == null) player = GameObject.FindGameObjectWithTag("Player").transform;
 
-        _playerHealth = player.GetComponent<Health>();
+        if (player == null)
+        {
+            GameObject playerObj = GameObject.FindWithTag("Player");
+            if (playerObj != null) player = playerObj.transform;
+        }
+
+        if (player != null)
+        {
+            _playerHealth = player.GetComponent<Health>();
+        }
+
+        // Cachear la distancia al cuadrado evita realizar raíces cuadradas en cada frame
+        _sqrAttackDistance = attackDistance * attackDistance;
     }
+
     private void Update()
     {
         if (player == null) return;
 
-        float distance = Vector3.Distance(transform.position, player.position);
+        float sqrDistance = (player.position - transform.position).sqrMagnitude;
 
-        if (distance > attackDistance)
+        if (sqrDistance > _sqrAttackDistance)
         {
             _agent.isStopped = false;
             _agent.SetDestination(player.position);
@@ -38,7 +51,16 @@ public class EnemyCC : MonoBehaviour
         {
             _agent.isStopped = true;
 
-            // Lógica de ataque con temporizador
+            // Suaviza la rotación para que el enemigo siga mirando al jugador mientras ataca
+            Vector3 direction = (player.position - transform.position).normalized;
+            direction.y = 0; // Evitamos que el enemigo se incline hacia arriba o abajo
+
+            if (direction != Vector3.zero)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(direction);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
+            }
+
             if (Time.time >= _nextAttackTime)
             {
                 AttackPlayer();
@@ -46,6 +68,7 @@ public class EnemyCC : MonoBehaviour
             }
         }
     }
+
     private void AttackPlayer()
     {
         if (_playerHealth != null)
