@@ -12,7 +12,7 @@ public class EnemySpawner : MonoBehaviour
 
     private float _nextSpawnTime;
 
-    void Update()
+    private void Update()
     {
         if (Time.time >= _nextSpawnTime)
         {
@@ -21,13 +21,14 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
-    void SpawnEnemy()
+    private void SpawnEnemy()
     {
-        // Calcula un vector aleatorio alrededor del Spawner
+        // Previene un error crítico si el array está vacío en el inspector
+        if (enemyPrefabs == null || enemyPrefabs.Length == 0) return;
+
         Vector3 randomDirection = Random.insideUnitSphere * spawnRadius;
         randomDirection += transform.position;
 
-        // Interpola la posición aleatoria con la malla de navegación horneada
         if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, spawnRadius, NavMesh.AllAreas))
         {
             int randomIndex = Random.Range(0, enemyPrefabs.Length);
