@@ -8,12 +8,14 @@ public class Shotgun : Weapon
     [SerializeField] private Transform weaponHolder;
     [SerializeField] private Transform muzzle;
     [SerializeField] private GameObject projectilePrefab;
+    [SerializeField] private ParticleSystem muzzleSmoke;
 
     [Header("Settings")]
     [SerializeField] private int pellets = 6;
     [SerializeField] private float spread = 8f;
     [SerializeField] private float projectileSpeed = 20f;
     [SerializeField] private float fireRate = 0.8f;
+    [SerializeField] private float pumpAnimationDelay = 0.12f;
     [SerializeField] private int damage = 20;
 
     [Header("Ammo")]
@@ -29,6 +31,17 @@ public class Shotgun : Weapon
 
     private PlayerFire _playerFire;
     private PlayerAim _playerAim;
+    private Animator _weaponAnimator;
+
+    [SerializeField] private string shootAnimationTrigger = "Shoot";
+    [SerializeField] private string reloadAnimationTrigger = "Reload";
+
+    [SerializeField] private float reloadAnimationClipDuration = 1f;
+
+    private float _originalAnimatorSpeed = 1f;
+
+    [SerializeField] private string reloadAnimationState = "Reload";
+    [SerializeField] private float reloadAnimationSpeed = 1f;
 
     private bool _isReloading;
     private bool _pickedUp;
@@ -46,6 +59,13 @@ public class Shotgun : Weapon
         IgnorePlayerCollision();
 
         _rigidbody = GetComponentInChildren<Rigidbody>();
+
+        _weaponAnimator = GetComponentInChildren<Animator>();
+
+        if (_weaponAnimator != null)
+        {
+            _originalAnimatorSpeed = _weaponAnimator.speed;
+        }
     }
 
     private void IgnorePlayerCollision()
@@ -92,6 +112,11 @@ public class Shotgun : Weapon
             _reloadCoroutine = null;
             _isReloading = false;
 
+            if (_weaponAnimator != null)
+            {
+                _weaponAnimator.speed = _originalAnimatorSpeed;
+            }
+
             Debug.Log("Reload interrupted");
         }
 
@@ -103,8 +128,20 @@ public class Shotgun : Weapon
             Debug.Log("No ammo in magazine");
             return;
         }
-        
+
         nextFireTime = Time.time + fireRate;
+
+        if (muzzleSmoke != null)
+        {
+            muzzleSmoke.Play();
+        }
+
+        // Reproducir animacion de corredera
+        if (_weaponAnimator != null)
+        {
+            StartCoroutine(PlayPumpAnimation());
+
+        }
 
         currentAmmo--;
 
@@ -148,6 +185,17 @@ public class Shotgun : Weapon
         }
     }
 
+    private IEnumerator PlayPumpAnimation()
+    {
+        yield return new WaitForSeconds(pumpAnimationDelay);
+
+        if (_weaponAnimator != null)
+        {
+            _weaponAnimator.ResetTrigger(shootAnimationTrigger);
+            _weaponAnimator.SetTrigger(shootAnimationTrigger);
+        }
+    }
+
     public override void Reload(Action onReload)
     {
         if (_isReloading)
@@ -168,6 +216,20 @@ public class Shotgun : Weapon
         {
             Debug.Log("No more ammo on reserve");
             return;
+        }
+
+        if (_weaponAnimator != null)
+        {
+            int bulletsToReload = magazineCapacity - currentAmmo;
+
+            float totalReloadTime = reloadStartDelay +
+                Mathf.Max(0, bulletsToReload - 1) * reloadInterval;
+
+            _weaponAnimator.speed = reloadAnimationClipDuration /
+                Mathf.Max(totalReloadTime, 0.01f);
+
+            _weaponAnimator.ResetTrigger(reloadAnimationTrigger);
+            _weaponAnimator.SetTrigger(reloadAnimationTrigger);
         }
 
         _reloadCoroutine = StartCoroutine(ReloadOneByOne(ammoInventory, onReload));
@@ -194,7 +256,13 @@ public class Shotgun : Weapon
         _isReloading = false;
         _reloadCoroutine = null;
 
+        if (_weaponAnimator != null)
+        {
+            _weaponAnimator.speed = _originalAnimatorSpeed;
+        }
+
         Debug.Log("Reload complete");
+
     }
 
     public override void Drop(Vector3 dropPosition)

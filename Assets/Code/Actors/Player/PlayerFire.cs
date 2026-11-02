@@ -45,6 +45,17 @@ public class PlayerFire : MonoBehaviour
         return _currentWeapon;
     }
 
+    public void DropCurrentWeapon(Vector3 dropPosition)
+    {
+        if (_currentWeapon == null)
+            return;
+
+        _currentWeapon.Drop(dropPosition);
+        _currentWeapon = null;
+
+        OnWeaponChanged?.Invoke();
+    }
+
     private bool IsPlayerAiming()
     {
         return _playerAim != null && _playerAim.IsAiming;
