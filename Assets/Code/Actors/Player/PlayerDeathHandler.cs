@@ -9,6 +9,8 @@ public class PlayerDeathHandler : MonoBehaviour, IDeathHandler
 
     private CharacterController _controller;
 
+    private PlayerFire _playerFire;
+
     private IResettable[] _resettables;
 
     private List<Transform> _availableSpawnPoints;
@@ -18,10 +20,17 @@ public class PlayerDeathHandler : MonoBehaviour, IDeathHandler
         _resettables = GetComponents<IResettable>();
         _controller = GetComponent<CharacterController>();
         _availableSpawnPoints = new List<Transform>(spawnPoints);
+        _playerFire = GetComponent<PlayerFire>();
     }
 
     public void Die()
     {
+
+        if (_playerFire != null)
+        {
+            _playerFire.DropCurrentWeapon(transform.position);
+        }
+
         if (_availableSpawnPoints.Count == 0)
         {
             Destroy(gameObject);
