@@ -5181,19 +5181,16 @@ MonoBehaviour:
   weaponHolder: {fileID: 0}
   muzzle: {fileID: 870701190044805335}
   projectilePrefab: {fileID: 8729765347162997929, guid: a8686916421af08428ac3e86f656ce0b, type: 3}
-  muzzleSmoke: {fileID: 687489718369442444}
+  animateOnShoot: 1
+  animateOnReload: 0
+  shootAnimationTrigger: Shoot
+  reloadAnimationTrigger: Reload
   pellets: 5
   spread: 3
   projectileSpeed: 23
   fireRate: 1.2
-  pumpAnimationDelay: 0.13
   damage: 5
   magazineCapacity: 8
   currentAmmo: 8
   reloadStartDelay: 1
   reloadInterval: 0.8
-  shootAnimationTrigger: Shoot
-  reloadAnimationTrigger: Reload
-  reloadAnimationClipDuration: 1
-  reloadAnimationState: Reload
-  reloadAnimationSpeed: 1
