@@ -1,3 +1,4 @@
+
 using System;
 using TMPro;
 using UnityEngine;
@@ -26,7 +27,7 @@ public class PlayerFire : MonoBehaviour
             _currentWeapon.Shoot();
             OnFire?.Invoke();
         }
-        
+
         // RECARGA
         if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame && _currentWeapon != null)
         {
@@ -39,10 +40,21 @@ public class PlayerFire : MonoBehaviour
         _currentWeapon = weapon;
         OnWeaponChanged?.Invoke();
     }
-    
+
     public Weapon GetCurrentWeapon()
     {
         return _currentWeapon;
+    }
+
+    public void DropCurrentWeapon(Vector3 dropPosition)
+    {
+        if (_currentWeapon == null)
+            return;
+
+        _currentWeapon.Drop(dropPosition);
+
+        _currentWeapon = null;
+        OnWeaponChanged?.Invoke();
     }
 
     private bool IsPlayerAiming()

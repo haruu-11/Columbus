@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections;
 using UnityEngine;
@@ -8,6 +9,15 @@ public class Shotgun : Weapon
     [SerializeField] private Transform weaponHolder;
     [SerializeField] private Transform muzzle;
     [SerializeField] private GameObject projectilePrefab;
+
+    [Header("Animation")]
+    [SerializeField] private bool animateOnShoot;
+    [SerializeField] private bool animateOnReload;
+    [SerializeField] private string shootAnimationTrigger = "Shoot";
+    [SerializeField] private string reloadAnimationTrigger = "Reload";
+    [SerializeField] private string idleAnimationState = "Idle";
+
+    private Animator _weaponAnimator;
 
     [Header("Settings")]
     [SerializeField] private int pellets = 6;
@@ -24,7 +34,6 @@ public class Shotgun : Weapon
 
     private Coroutine _reloadCoroutine;
     private Collider[] _playerColliders;
-
     private Rigidbody _rigidbody;
 
     private PlayerFire _playerFire;
@@ -33,6 +42,7 @@ public class Shotgun : Weapon
     private bool _isReloading;
     private bool _pickedUp;
     private float nextFireTime;
+
     public override int CurrentAmmo => currentAmmo;
     public override int Damage => damage;
 
@@ -46,6 +56,7 @@ public class Shotgun : Weapon
         IgnorePlayerCollision();
 
         _rigidbody = GetComponentInChildren<Rigidbody>();
+        _weaponAnimator = GetComponentInChildren<Animator>(true);
     }
 
     private void IgnorePlayerCollision()
@@ -60,6 +71,7 @@ public class Shotgun : Weapon
             }
         }
     }
+
     public override void Pickup()
     {
         if (_pickedUp)
@@ -70,7 +82,7 @@ public class Shotgun : Weapon
         transform.SetParent(weaponHolder);
         transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
-        if (_rigidbody  != null)
+        if (_rigidbody != null)
         {
             _rigidbody.isKinematic = true;
             _rigidbody.useGravity = false;
@@ -86,24 +98,27 @@ public class Shotgun : Weapon
 
     public override void Shoot()
     {
+        // Si está recargando, cancelar la recarga y su animación.
         if (_isReloading)
         {
-            StopCoroutine(_reloadCoroutine);
-            _reloadCoroutine = null;
-            _isReloading = false;
-
-            Debug.Log("Reload interrupted");
+            CancelReload();
         }
 
         if (Time.time < nextFireTime)
-            return; 
+            return;
 
         if (currentAmmo <= 0)
         {
             Debug.Log("No ammo in magazine");
             return;
         }
-        
+
+        if (animateOnShoot && _weaponAnimator != null)
+        {
+            _weaponAnimator.ResetTrigger(shootAnimationTrigger);
+            _weaponAnimator.SetTrigger(shootAnimationTrigger);
+        }
+
         nextFireTime = Time.time + fireRate;
 
         currentAmmo--;
@@ -127,7 +142,7 @@ public class Shotgun : Weapon
                 projectilePrefab,
                 muzzle.position,
                 rotation
-                );    
+            );
 
             Projectile projectileScript = projectile.GetComponent<Projectile>();
 
@@ -146,6 +161,26 @@ public class Shotgun : Weapon
 
             rb.linearVelocity = rotation * Vector3.forward * projectileSpeed;
         }
+    }
+
+    private void CancelReload()
+    {
+        if (_reloadCoroutine != null)
+        {
+            StopCoroutine(_reloadCoroutine);
+            _reloadCoroutine = null;
+        }
+
+        _isReloading = false;
+
+        if (_weaponAnimator != null && animateOnReload)
+        {
+            _weaponAnimator.ResetTrigger(reloadAnimationTrigger);
+            _weaponAnimator.Play(idleAnimationState, 0, 0f);
+            _weaponAnimator.Update(0f);
+        }
+
+        Debug.Log("Reload interrupted");
     }
 
     public override void Reload(Action onReload)
@@ -170,10 +205,20 @@ public class Shotgun : Weapon
             return;
         }
 
-        _reloadCoroutine = StartCoroutine(ReloadOneByOne(ammoInventory, onReload));
+        if (animateOnReload && _weaponAnimator != null)
+        {
+            _weaponAnimator.ResetTrigger(reloadAnimationTrigger);
+            _weaponAnimator.SetTrigger(reloadAnimationTrigger);
+        }
+
+        _reloadCoroutine = StartCoroutine(
+            ReloadOneByOne(ammoInventory, onReload)
+        );
     }
 
-    private IEnumerator ReloadOneByOne(AmmoInventory ammoInventory, Action onReload)
+    private IEnumerator ReloadOneByOne(
+        AmmoInventory ammoInventory,
+        Action onReload)
     {
         _isReloading = true;
 
@@ -188,7 +233,10 @@ public class Shotgun : Weapon
 
             Debug.Log("Reloading... " + currentAmmo + "/" + magazineCapacity);
 
-            yield return new WaitForSeconds(reloadInterval);
+            if (reloadInterval > 0f)
+                yield return new WaitForSeconds(reloadInterval);
+            else
+                yield return null;
         }
 
         _isReloading = false;
@@ -199,6 +247,12 @@ public class Shotgun : Weapon
 
     public override void Drop(Vector3 dropPosition)
     {
+        // Si se suelta mientras recarga, cancelar la recarga.
+        if (_isReloading)
+        {
+            CancelReload();
+        }
+
         _pickedUp = false;
 
         transform.SetParent(null);
@@ -214,5 +268,4 @@ public class Shotgun : Weapon
 
         Debug.Log("Weapon dropped");
     }
-
 }
