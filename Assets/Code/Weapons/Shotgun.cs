@@ -19,7 +19,7 @@ public class Shotgun : Weapon
     [SerializeField] private bool animateOnShoot;
     [SerializeField] private bool animateOnReload;
     [SerializeField] private string shootAnimationTrigger = "Shoot";
-    [SerializeField] private string reloadAnimationTrigger = "Reload";
+    [SerializeField] private string reloadAnimationBool = "isReloading";
     [SerializeField] private string idleAnimationState = "Idle";
 
     private Animator _weaponAnimator;
@@ -30,6 +30,9 @@ public class Shotgun : Weapon
     [SerializeField] private float projectileSpeed = 20f;
     [SerializeField] private float fireRate = 0.8f;
     [SerializeField] private int damage = 20;
+
+    [Header("Transform Offset")]
+    [SerializeField] private Vector3 rotationOffset = Vector3.zero;
 
     [Header("Ammo")]
     [SerializeField] private int magazineCapacity = 8;
@@ -85,7 +88,7 @@ public class Shotgun : Weapon
         _pickedUp = true;
 
         transform.SetParent(weaponHolder);
-        transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+        transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.Euler(rotationOffset));
 
         if (_rigidbody != null)
         {
@@ -118,7 +121,6 @@ public class Shotgun : Weapon
             {
                 audioSource.PlayOneShot(emptyClip);
             }
-            // Agregamos un pequeño delay para que no se spammee el sonido de vacío si el jugador aprieta muy rápido
             nextFireTime = Time.time + 0.2f;
             return;
         }
@@ -132,7 +134,6 @@ public class Shotgun : Weapon
         nextFireTime = Time.time + fireRate;
         currentAmmo--;
 
-        // REPRODUCCIÓN DEL DISPARO
         if (audioSource != null && shootClip != null)
         {
             audioSource.PlayOneShot(shootClip);
@@ -182,9 +183,7 @@ public class Shotgun : Weapon
 
         if (_weaponAnimator != null && animateOnReload)
         {
-            _weaponAnimator.ResetTrigger(reloadAnimationTrigger);
-            _weaponAnimator.Play(idleAnimationState, 0, 0f);
-            _weaponAnimator.Update(0f);
+            _weaponAnimator.SetBool(reloadAnimationBool, false);
         }
 
         Debug.Log("Reload interrupted");
@@ -209,18 +208,17 @@ public class Shotgun : Weapon
             return;
         }
 
-        if (animateOnReload && _weaponAnimator != null)
-        {
-            _weaponAnimator.ResetTrigger(reloadAnimationTrigger);
-            _weaponAnimator.SetTrigger(reloadAnimationTrigger);
-        }
-
         _reloadCoroutine = StartCoroutine(ReloadOneByOne(ammoInventory, onReload));
     }
 
     private IEnumerator ReloadOneByOne(AmmoInventory ammoInventory, Action onReload)
     {
         _isReloading = true;
+
+        if (animateOnReload && _weaponAnimator != null)
+        {
+            _weaponAnimator.SetBool(reloadAnimationBool, true);
+        }
 
         yield return new WaitForSeconds(reloadStartDelay);
 
@@ -229,7 +227,6 @@ public class Shotgun : Weapon
             currentAmmo++;
             ammoInventory.TryUseAmmo();
 
-            // REPRODUCCIÓN DE LA RECARGA (Suena por cada cartucho insertado)
             if (audioSource != null && reloadClip != null)
             {
                 audioSource.PlayOneShot(reloadClip);
@@ -245,6 +242,12 @@ public class Shotgun : Weapon
         }
 
         _isReloading = false;
+
+        if (animateOnReload && _weaponAnimator != null)
+        {
+            _weaponAnimator.SetBool(reloadAnimationBool, false);
+        }
+
         _reloadCoroutine = null;
 
         Debug.Log("Reload complete");
