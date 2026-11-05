@@ -5184,7 +5184,7 @@ MonoBehaviour:
   animateOnShoot: 1
   animateOnReload: 0
   shootAnimationTrigger: Shoot
-  reloadAnimationTrigger: Reload
+  reloadAnimationBool: isReloading
   pellets: 5
   spread: 3
   projectileSpeed: 23

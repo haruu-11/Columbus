@@ -5189,10 +5189,15 @@ MonoBehaviour:
   weaponHolder: {fileID: 0}
   muzzle: {fileID: 8438015049776533340}
   projectilePrefab: {fileID: 8729765347162997929, guid: a8686916421af08428ac3e86f656ce0b, type: 3}
+  audioSource: {fileID: 0}
+  shootClip: {fileID: 0}
+  emptyClip: {fileID: 0}
+  reloadClip: {fileID: 0}
   animateOnShoot: 0
   animateOnReload: 1
   shootAnimationTrigger: Shoot
-  reloadAnimationTrigger: Reload
+  reloadAnimationBool: isReloading
+  idleAnimationState: Idle
   pellets: 6
   spread: 3
   projectileSpeed: 27
