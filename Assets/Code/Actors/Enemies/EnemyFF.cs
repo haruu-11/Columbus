@@ -9,6 +9,10 @@ public class EnemyFF : MonoBehaviour
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private Transform firePoint;
 
+    [Header("Audio SFX (Bloque C)")]
+    [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioClip escupitajoClip;
+
     [Header("Settings")]
     [SerializeField] private float projectileSpeed = 20f;
     [SerializeField] private float combatDistance = 12f;
@@ -69,10 +73,17 @@ public class EnemyFF : MonoBehaviour
         {
             GameObject projectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
 
-            // TryGetComponent evita generar errores si el prefab no tiene el script
             if (projectile.TryGetComponent<EnemyProjectile>(out var projectileScript))
             {
                 projectileScript.Initialize(projectileSpeed, 10);
+            }
+
+            // Variación de pitch y volumen requerida para el parcial
+            if (sfxSource != null && escupitajoClip != null)
+            {
+                sfxSource.pitch = Random.Range(0.85f, 1.15f);
+                sfxSource.volume = Random.Range(0.8f, 1.0f);
+                sfxSource.PlayOneShot(escupitajoClip);
             }
         }
     }

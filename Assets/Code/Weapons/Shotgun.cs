@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections;
 using UnityEngine;
@@ -9,6 +8,12 @@ public class Shotgun : Weapon
     [SerializeField] private Transform weaponHolder;
     [SerializeField] private Transform muzzle;
     [SerializeField] private GameObject projectilePrefab;
+
+    [Header("Audio SFX (Bloque C)")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip shootClip;   // Arrastrar Disparo Arma_2.wav
+    [SerializeField] private AudioClip emptyClip;   // Arrastrar Disparar sin Ammo_2.wav
+    [SerializeField] private AudioClip reloadClip;  // Arrastrar Recarga_2.wav
 
     [Header("Animation")]
     [SerializeField] private bool animateOnShoot;
@@ -98,7 +103,6 @@ public class Shotgun : Weapon
 
     public override void Shoot()
     {
-        // Si está recargando, cancelar la recarga y su animación.
         if (_isReloading)
         {
             CancelReload();
@@ -110,6 +114,12 @@ public class Shotgun : Weapon
         if (currentAmmo <= 0)
         {
             Debug.Log("No ammo in magazine");
+            if (audioSource != null && emptyClip != null)
+            {
+                audioSource.PlayOneShot(emptyClip);
+            }
+            // Agregamos un pequeño delay para que no se spammee el sonido de vacío si el jugador aprieta muy rápido
+            nextFireTime = Time.time + 0.2f;
             return;
         }
 
@@ -120,8 +130,13 @@ public class Shotgun : Weapon
         }
 
         nextFireTime = Time.time + fireRate;
-
         currentAmmo--;
+
+        // REPRODUCCIÓN DEL DISPARO
+        if (audioSource != null && shootClip != null)
+        {
+            audioSource.PlayOneShot(shootClip);
+        }
 
         Debug.Log("Shoot - Ammo left: " + currentAmmo);
 
@@ -132,18 +147,11 @@ public class Shotgun : Weapon
             direction.Normalize();
 
             Quaternion rotation = Quaternion.LookRotation(direction);
-
             float randomX = UnityEngine.Random.Range(-spread, spread);
             float randomY = UnityEngine.Random.Range(-spread, spread);
-
             rotation *= Quaternion.Euler(randomX, randomY, 0f);
 
-            GameObject projectile = Instantiate(
-                projectilePrefab,
-                muzzle.position,
-                rotation
-            );
-
+            GameObject projectile = Instantiate(projectilePrefab, muzzle.position, rotation);
             Projectile projectileScript = projectile.GetComponent<Projectile>();
 
             if (projectileScript != null)
@@ -152,7 +160,6 @@ public class Shotgun : Weapon
             }
 
             Rigidbody rb = projectile.GetComponentInChildren<Rigidbody>();
-
             if (rb == null)
             {
                 Destroy(projectile);
@@ -185,11 +192,8 @@ public class Shotgun : Weapon
 
     public override void Reload(Action onReload)
     {
-        if (_isReloading)
-            return;
-
-        if (currentAmmo >= magazineCapacity)
-            return;
+        if (_isReloading) return;
+        if (currentAmmo >= magazineCapacity) return;
 
         AmmoInventory ammoInventory = GetComponentInParent<AmmoInventory>();
 
@@ -211,14 +215,10 @@ public class Shotgun : Weapon
             _weaponAnimator.SetTrigger(reloadAnimationTrigger);
         }
 
-        _reloadCoroutine = StartCoroutine(
-            ReloadOneByOne(ammoInventory, onReload)
-        );
+        _reloadCoroutine = StartCoroutine(ReloadOneByOne(ammoInventory, onReload));
     }
 
-    private IEnumerator ReloadOneByOne(
-        AmmoInventory ammoInventory,
-        Action onReload)
+    private IEnumerator ReloadOneByOne(AmmoInventory ammoInventory, Action onReload)
     {
         _isReloading = true;
 
@@ -229,8 +229,13 @@ public class Shotgun : Weapon
             currentAmmo++;
             ammoInventory.TryUseAmmo();
 
-            onReload?.Invoke();
+            // REPRODUCCIÓN DE LA RECARGA (Suena por cada cartucho insertado)
+            if (audioSource != null && reloadClip != null)
+            {
+                audioSource.PlayOneShot(reloadClip);
+            }
 
+            onReload?.Invoke();
             Debug.Log("Reloading... " + currentAmmo + "/" + magazineCapacity);
 
             if (reloadInterval > 0f)
@@ -247,16 +252,13 @@ public class Shotgun : Weapon
 
     public override void Drop(Vector3 dropPosition)
     {
-        // Si se suelta mientras recarga, cancelar la recarga.
         if (_isReloading)
         {
             CancelReload();
         }
 
         _pickedUp = false;
-
         transform.SetParent(null);
-
         transform.position = dropPosition + transform.forward * 0.8f;
         transform.rotation = Quaternion.identity;
 

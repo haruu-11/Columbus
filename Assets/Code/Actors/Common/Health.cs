@@ -8,12 +8,21 @@ public class Health : MonoBehaviour, IResettable
     [Header("Visuals")]
     [SerializeField] private ParticleSystem bloodParticles;
 
+    [Header("Audio SFX (Bloque C)")]
+    [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioClip[] damageClips;
+    [SerializeField] private AudioClip deathClip;
+
     private int _currentHealth;
     private IDeathHandler _deathHandler;
+
+    // NUEVO: Candado para evitar que muera dos veces en el mismo frame
+    private bool _isDead = false;
 
     private void Start()
     {
         _currentHealth = maxHealth;
+        _isDead = false;
 
         if (!TryGetComponent(out _deathHandler))
         {
@@ -23,6 +32,9 @@ public class Health : MonoBehaviour, IResettable
 
     public void TakeDamage(int amount)
     {
+        // Si ya está muerto, ignoramos cualquier daño adicional
+        if (_isDead) return;
+
         _currentHealth -= amount;
 
         if (bloodParticles != null)
@@ -30,27 +42,51 @@ public class Health : MonoBehaviour, IResettable
             bloodParticles.Play();
         }
 
+        if (sfxSource != null && damageClips.Length > 0 && _currentHealth > 0)
+        {
+            int randomIndex = Random.Range(0, damageClips.Length);
+            sfxSource.PlayOneShot(damageClips[randomIndex]);
+        }
+
         if (_currentHealth <= 0)
         {
+            _isDead = true; // Activamos el candado
             _currentHealth = 0;
 
-            // Solo desvinculamos y destruimos las partículas si el objeto NO es el jugador.
             if (!gameObject.CompareTag("Player") && bloodParticles != null)
             {
                 bloodParticles.transform.SetParent(null);
-                // Destruimos el objeto de partículas tras 2 segundos para darle tiempo a la animación.
                 Destroy(bloodParticles.gameObject, 2f);
             }
 
+            ReproducirSonidoMuerte();
             _deathHandler.Die();
+        }
+    }
+
+    private void ReproducirSonidoMuerte()
+    {
+        if (deathClip != null && sfxSource != null)
+        {
+            GameObject audioObj = new GameObject("DeathAudioTemp");
+            audioObj.transform.position = transform.position;
+
+            AudioSource tempSource = audioObj.AddComponent<AudioSource>();
+            tempSource.clip = deathClip;
+
+            tempSource.outputAudioMixerGroup = sfxSource.outputAudioMixerGroup;
+            tempSource.spatialBlend = sfxSource.spatialBlend;
+
+            tempSource.Play();
+            Destroy(audioObj, deathClip.length);
         }
     }
 
     public void ResetState()
     {
         _currentHealth = maxHealth;
+        _isDead = false; // Reiniciamos el candado al respawnear (Jugador)
 
-        // Al respawnear, detenemos y limpiamos las partículas emitidas para que no viajen al inicio.
         if (bloodParticles != null)
         {
             bloodParticles.Stop();
