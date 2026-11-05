@@ -5049,6 +5049,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
   player: {fileID: 0}
+  sfxSource: {fileID: 4864946224514768330}
+  alertClip: {fileID: 8300000, guid: 89b16efa47ce35841b20c45f0263132f, type: 3}
+  attackClip: {fileID: 8300000, guid: 10f115f543c99a24d8d52cc7d41790b5, type: 3}
   detectionRadius: 15
   obstacleMask:
     serializedVersion: 2
