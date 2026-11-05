@@ -271,6 +271,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 4678097685820232742, guid: d6199ca5c4f54b74bb984350a5d3f627, type: 3}
   firePoint: {fileID: 2503422138353258326}
   sfxSource: {fileID: 4900188214906517365}
+  alertClip: {fileID: 8300000, guid: 89b16efa47ce35841b20c45f0263132f, type: 3}
   escupitajoClip: {fileID: 8300000, guid: 0cb2ea7b838723444aa909b7ea250555, type: 3}
   detectionRadius: 15
   obstacleMask:
@@ -368,7 +369,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 1
+      value: 0.5
       inSlope: 0
       outSlope: 0
       tangentMode: 0
