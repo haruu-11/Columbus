@@ -33,19 +33,20 @@ public class PlayerMovement : MonoBehaviour
     private Transform _cameraTransform;
 
     private Vector2 _moveDirection;
-    private float _verticalVelocity; // Controla la caída acumulada
+    private float _verticalVelocity;
 
     private bool _sprint;
-
     private float _speed;
     private float _targetRotation = 0.0f;
     private float _rotationVelocity;
+
+    public bool IsMoving => _moveDirection.sqrMagnitude > 0.01f;
 
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
         _playerAim = GetComponent<PlayerAim>();
-        _cameraTransform = Camera.main.transform;
+        UpdateCameraReference();
     }
 
     private void Update()
@@ -57,31 +58,51 @@ public class PlayerMovement : MonoBehaviour
 
     private void ReadInput()
     {
-        _moveDirection = moveAction.action.ReadValue<Vector2>();
-        _sprint = sprintAction.action.IsPressed();
+        if (moveAction != null && moveAction.action != null)
+        {
+            _moveDirection = moveAction.action.ReadValue<Vector2>();
+        }
+
+        if (sprintAction != null && sprintAction.action != null)
+        {
+            _sprint = sprintAction.action.IsPressed();
+        }
     }
 
     private void ApplyGravity()
     {
-        // Si toca el suelo, reseteamos la velocidad vertical a un valor negativo pequeño para mantenerlo pegado
         if (_controller.isGrounded && _verticalVelocity < 0)
         {
             _verticalVelocity = -2f;
         }
         else
         {
-            // Acumula la aceleración por gravedad en cada frame
             _verticalVelocity += gravity * Time.deltaTime;
         }
     }
+
+    private void UpdateCameraReference()
+    {
+        if (_cameraTransform == null || !_cameraTransform.gameObject.activeInHierarchy)
+        {
+            if (Camera.main != null)
+            {
+                _cameraTransform = Camera.main.transform;
+            }
+        }
+    }
+
     private void Move()
     {
-        bool isAiming = _playerAim.IsAiming;
+        UpdateCameraReference();
 
+        bool isAiming = _playerAim != null && _playerAim.IsAiming;
         float targetSpeed = isAiming ? aimingSpeed : (_sprint ? sprintSpeed : moveSpeed);
 
         if (_moveDirection == Vector2.zero)
+        {
             targetSpeed = 0.0f;
+        }
 
         float currentHorizontalSpeed = new Vector3(
             _controller.velocity.x,
@@ -107,7 +128,15 @@ public class PlayerMovement : MonoBehaviour
             _speed = targetSpeed;
         }
 
-        if (_moveDirection != Vector2.zero)
+        // Si soltó el control, frenamos la velocidad horizontal inmediatamente
+        if (_moveDirection == Vector2.zero)
+        {
+            _speed = 0.0f;
+        }
+
+        Vector3 targetDirection = Vector3.zero;
+
+        if (_moveDirection != Vector2.zero && _cameraTransform != null)
         {
             Vector3 cameraForward = _cameraTransform.forward;
             Vector3 cameraRight = _cameraTransform.right;
@@ -118,33 +147,24 @@ public class PlayerMovement : MonoBehaviour
             cameraForward.Normalize();
             cameraRight.Normalize();
 
-            Vector3 targetDirection =
-                cameraForward * _moveDirection.y +
-                cameraRight * _moveDirection.x;
+            targetDirection = cameraForward * _moveDirection.y + cameraRight * _moveDirection.x;
 
-            _targetRotation = Mathf.Atan2(
-                targetDirection.x,
-                targetDirection.z
-            ) * Mathf.Rad2Deg;
+            if (targetDirection != Vector3.zero)
+            {
+                _targetRotation = Mathf.Atan2(targetDirection.x, targetDirection.z) * Mathf.Rad2Deg;
 
-            float rotation = Mathf.SmoothDampAngle(
-                transform.eulerAngles.y,
-                _targetRotation,
-                ref _rotationVelocity,
-                rotationSmoothTime
-            );
+                float rotation = Mathf.SmoothDampAngle(
+                    transform.eulerAngles.y,
+                    _targetRotation,
+                    ref _rotationVelocity,
+                    rotationSmoothTime
+                );
 
-            transform.rotation = Quaternion.Euler(
-                0.0f,
-                rotation,
-                0.0f
-            );
-
-            Vector3 motion =
-                targetDirection.normalized * _speed +
-                new Vector3(0.0f, _verticalVelocity, 0.0f);
-
-            _controller.Move(motion * Time.deltaTime);
+                transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+            }
         }
+
+        Vector3 motion = targetDirection.normalized * _speed + new Vector3(0.0f, _verticalVelocity, 0.0f);
+        _controller.Move(motion * Time.deltaTime);
     }
 }
