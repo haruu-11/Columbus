@@ -10,7 +10,13 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float spawnRadius = 20f;
     [SerializeField] private float spawnInterval = 4f;
 
+    [Header("Room Limits")]
+    [Tooltip("Activar para oleadas infinitas (ideal para el mini survival del final)")]
+    [SerializeField] private bool isInfiniteSpawner = false;
+    [SerializeField] private int maxEnemiesToSpawn = 3;
+
     private float _nextSpawnTime;
+    private int _spawnedCount = 0;
 
     private void Update()
     {
@@ -23,7 +29,6 @@ public class EnemySpawner : MonoBehaviour
 
     private void SpawnEnemy()
     {
-        // Previene un error crítico si el array está vacío en el inspector
         if (enemyPrefabs == null || enemyPrefabs.Length == 0) return;
 
         Vector3 randomDirection = Random.insideUnitSphere * spawnRadius;
@@ -33,6 +38,18 @@ public class EnemySpawner : MonoBehaviour
         {
             int randomIndex = Random.Range(0, enemyPrefabs.Length);
             Instantiate(enemyPrefabs[randomIndex], hit.position, Quaternion.identity);
+
+            // Si no es infinito, sumamos a la cuenta y revisamos el límite
+            if (!isInfiniteSpawner)
+            {
+                _spawnedCount++;
+
+                if (_spawnedCount >= maxEnemiesToSpawn)
+                {
+                    Debug.Log($"Spawner de la sala {gameObject.name} terminó su cupo y se apagó.");
+                    this.enabled = false; // Apaga el script. No consume más recursos.
+                }
+            }
         }
     }
 }
