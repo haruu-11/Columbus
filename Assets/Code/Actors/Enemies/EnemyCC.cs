@@ -7,14 +7,9 @@ public class EnemyCC : MonoBehaviour
     [Header("References")]
     [SerializeField] private Transform player;
 
-    [Header("Audio SFX (Bloque C)")]
-    [SerializeField] private AudioSource sfxSource;
-    [SerializeField] private AudioClip alertClip;   // Sonido cuando te detecta
-    [SerializeField] private AudioClip attackClip;  // Sonido del golpe/mordisco
-
     [Header("Detection Settings")]
     [SerializeField] private float detectionRadius = 15f;
-    [SerializeField] private LayerMask obstacleMask;
+    [SerializeField] private LayerMask obstacleMask; // Acordate de usar la Layer "Walls", no "Ground"
 
     [Header("Combat Settings")]
     [SerializeField] private float attackDistance = 2f;
@@ -57,15 +52,7 @@ public class EnemyCC : MonoBehaviour
 
         if (canSeePlayer)
         {
-            // Si recién te detecta en este frame, grita.
-            if (!_isAggro)
-            {
-                _isAggro = true;
-                if (sfxSource != null && alertClip != null)
-                {
-                    sfxSource.PlayOneShot(alertClip);
-                }
-            }
+            _isAggro = true;
         }
         else
         {
@@ -119,13 +106,6 @@ public class EnemyCC : MonoBehaviour
 
     private void AttackPlayer()
     {
-        // Reproduce el sonido de ataque con variación de pitch
-        if (sfxSource != null && attackClip != null)
-        {
-            sfxSource.pitch = Random.Range(0.9f, 1.15f);
-            sfxSource.PlayOneShot(attackClip);
-        }
-
         if (_playerHealth != null)
         {
             _playerHealth.TakeDamage(damage);

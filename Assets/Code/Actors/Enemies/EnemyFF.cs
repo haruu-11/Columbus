@@ -11,12 +11,11 @@ public class EnemyFF : MonoBehaviour
 
     [Header("Audio SFX (Bloque C)")]
     [SerializeField] private AudioSource sfxSource;
-    [SerializeField] private AudioClip alertClip;       // NUEVO: Sonido cuando te detecta
     [SerializeField] private AudioClip escupitajoClip;
 
     [Header("Detection Settings")]
     [SerializeField] private float detectionRadius = 15f;
-    [SerializeField] private LayerMask obstacleMask;
+    [SerializeField] private LayerMask obstacleMask; // Acordate de usar la Layer "Walls", no "Ground"
 
     [Header("Combat Settings")]
     [SerializeField] private float projectileSpeed = 20f;
@@ -54,15 +53,7 @@ public class EnemyFF : MonoBehaviour
 
         if (canSeePlayer)
         {
-            // Si recién te detecta, grita.
-            if (!_isAggro)
-            {
-                _isAggro = true;
-                if (sfxSource != null && alertClip != null)
-                {
-                    sfxSource.PlayOneShot(alertClip);
-                }
-            }
+            _isAggro = true;
         }
         else
         {
@@ -123,6 +114,7 @@ public class EnemyFF : MonoBehaviour
                 projectileScript.Initialize(projectileSpeed, 10);
             }
 
+            // Variación de pitch y volumen requerida para el parcial
             if (sfxSource != null && escupitajoClip != null)
             {
                 sfxSource.pitch = Random.Range(0.85f, 1.15f);
