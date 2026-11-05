@@ -9,7 +9,15 @@ public class EnemyFF : MonoBehaviour
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private Transform firePoint;
 
-    [Header("Settings")]
+    [Header("Audio SFX (Bloque C)")]
+    [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioClip escupitajoClip;
+
+    [Header("Detection Settings")]
+    [SerializeField] private float detectionRadius = 15f;
+    [SerializeField] private LayerMask obstacleMask; // Acordate de usar la Layer "Walls", no "Ground"
+
+    [Header("Combat Settings")]
     [SerializeField] private float projectileSpeed = 20f;
     [SerializeField] private float combatDistance = 12f;
     [SerializeField] private float fireRate = 2f;
@@ -19,6 +27,8 @@ public class EnemyFF : MonoBehaviour
     private float _nextFireTime;
     private float _nextRepositionTime;
     private float _sqrCombatDistance;
+    private float _sqrDetectionRadius;
+    private bool _isAggro = false;
 
     private void Start()
     {
@@ -31,24 +41,40 @@ public class EnemyFF : MonoBehaviour
         }
 
         _sqrCombatDistance = combatDistance * combatDistance;
+        _sqrDetectionRadius = detectionRadius * detectionRadius;
     }
 
     private void Update()
     {
         if (player == null) return;
 
+        float sqrDistance = (player.position - transform.position).sqrMagnitude;
+        bool canSeePlayer = (sqrDistance <= _sqrDetectionRadius) && HasLineOfSight();
+
+        if (canSeePlayer)
+        {
+            _isAggro = true;
+        }
+        else
+        {
+            _isAggro = false;
+            _agent.isStopped = true;
+            return;
+        }
+
         Vector3 lookPosition = player.position;
         lookPosition.y = transform.position.y;
         transform.LookAt(lookPosition);
 
-        float sqrDistance = (player.position - transform.position).sqrMagnitude;
-
         if (sqrDistance > _sqrCombatDistance)
         {
+            _agent.isStopped = false;
             _agent.SetDestination(player.position);
         }
         else
         {
+            _agent.isStopped = true;
+
             if (Time.time >= _nextFireTime)
             {
                 Shoot();
@@ -63,16 +89,37 @@ public class EnemyFF : MonoBehaviour
         }
     }
 
+    private bool HasLineOfSight()
+    {
+        Vector3 origin = transform.position + Vector3.up * 1.2f;
+        Vector3 target = player.position + Vector3.up * 1.2f;
+        Vector3 directionToPlayer = (target - origin).normalized;
+        float distance = Vector3.Distance(origin, target);
+
+        if (Physics.Raycast(origin, directionToPlayer, distance, obstacleMask))
+        {
+            return false;
+        }
+        return true;
+    }
+
     private void Shoot()
     {
         if (projectilePrefab != null && firePoint != null)
         {
             GameObject projectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
 
-            // TryGetComponent evita generar errores si el prefab no tiene el script
             if (projectile.TryGetComponent<EnemyProjectile>(out var projectileScript))
             {
                 projectileScript.Initialize(projectileSpeed, 10);
+            }
+
+            // Variación de pitch y volumen requerida para el parcial
+            if (sfxSource != null && escupitajoClip != null)
+            {
+                sfxSource.pitch = Random.Range(0.85f, 1.15f);
+                sfxSource.volume = Random.Range(0.8f, 1.0f);
+                sfxSource.PlayOneShot(escupitajoClip);
             }
         }
     }
