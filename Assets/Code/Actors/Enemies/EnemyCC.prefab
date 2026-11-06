@@ -4911,6 +4911,7 @@ GameObject:
   - component: {fileID: 317209496068873980}
   - component: {fileID: 3169491890925691759}
   - component: {fileID: 4864946224514768330}
+  - component: {fileID: 7189242452885210242}
   m_Layer: 10
   m_Name: EnemyCC
   m_TagString: Enemy
@@ -5184,3 +5185,22 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &7189242452885210242
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6871026923597042654}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ac95e1040f4c814ebb64449dab40fa5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyProximityAudio
+  player: {fileID: 0}
+  ambientSource: {fileID: 0}
+  maxDistance: 20
+  minVolume: 0
+  maxVolume: 0.8
+  fadeSpeed: 1.5
+  refreshInterval: 2
