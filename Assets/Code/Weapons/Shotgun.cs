@@ -9,17 +9,15 @@ public class Shotgun : Weapon
     [SerializeField] private Transform muzzle;
     [SerializeField] private GameObject projectilePrefab;
 
-    [Header("Audio SFX (Bloque C)")]
-    [SerializeField] private AudioSource audioSource;
-    [SerializeField] private AudioClip shootClip;   // Arrastrar Disparo Arma_2.wav
-    [SerializeField] private AudioClip emptyClip;   // Arrastrar Disparar sin Ammo_2.wav
-    [SerializeField] private AudioClip reloadClip;  // Arrastrar Recarga_2.wav
+    [Header("Corrección de Rotación")]
+    [Tooltip("Marcar si este modelo necesita rotar al ser equipado.")]
+    [SerializeField] private bool invertModelRotation = false;
+    [SerializeField] private Vector3 rotationOffset = new Vector3(0f, 180f, 0f);
 
     [Header("Animation")]
     [SerializeField] private bool animateOnShoot;
     [SerializeField] private bool animateOnReload;
     [SerializeField] private string shootAnimationTrigger = "Shoot";
-    [SerializeField] private string reloadAnimationTrigger = "Reload";
     [SerializeField] private string idleAnimationState = "Idle";
 
     private Animator _weaponAnimator;
@@ -53,12 +51,23 @@ public class Shotgun : Weapon
 
     private void Start()
     {
-        _playerFire = weaponHolder.GetComponentInParent<PlayerFire>();
-        _playerAim = weaponHolder.GetComponentInParent<PlayerAim>();
+        _playerFire = GetComponentInParent<PlayerFire>();
+        if (_playerFire == null && weaponHolder != null)
+        {
+            _playerFire = weaponHolder.GetComponentInParent<PlayerFire>();
+        }
 
-        _playerColliders = _playerFire.GetComponentsInParent<Collider>();
+        _playerAim = GetComponentInParent<PlayerAim>();
+        if (_playerAim == null && weaponHolder != null)
+        {
+            _playerAim = weaponHolder.GetComponentInParent<PlayerAim>();
+        }
 
-        IgnorePlayerCollision();
+        if (_playerFire != null)
+        {
+            _playerColliders = _playerFire.GetComponentsInParent<Collider>();
+            IgnorePlayerCollision();
+        }
 
         _rigidbody = GetComponentInChildren<Rigidbody>();
         _weaponAnimator = GetComponentInChildren<Animator>(true);
@@ -66,6 +75,7 @@ public class Shotgun : Weapon
 
     private void IgnorePlayerCollision()
     {
+        if (_playerColliders == null) return;
         Collider[] weaponColliders = GetComponentsInChildren<Collider>();
 
         foreach (Collider weaponCollider in weaponColliders)
@@ -84,8 +94,17 @@ public class Shotgun : Weapon
 
         _pickedUp = true;
 
-        transform.SetParent(weaponHolder);
-        transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+        if (weaponHolder != null)
+        {
+            transform.SetParent(weaponHolder);
+            transform.localPosition = Vector3.zero;
+
+            // Respeta la escala original y aplica la rotación solo si está marcada
+            if (invertModelRotation)
+                transform.localRotation = Quaternion.Euler(rotationOffset);
+            else
+                transform.localRotation = Quaternion.identity;
+        }
 
         if (_rigidbody != null)
         {
@@ -114,12 +133,6 @@ public class Shotgun : Weapon
         if (currentAmmo <= 0)
         {
             Debug.Log("No ammo in magazine");
-            if (audioSource != null && emptyClip != null)
-            {
-                audioSource.PlayOneShot(emptyClip);
-            }
-            // Agregamos un pequeño delay para que no se spammee el sonido de vacío si el jugador aprieta muy rápido
-            nextFireTime = Time.time + 0.2f;
             return;
         }
 
@@ -132,26 +145,27 @@ public class Shotgun : Weapon
         nextFireTime = Time.time + fireRate;
         currentAmmo--;
 
-        // REPRODUCCIÓN DEL DISPARO
-        if (audioSource != null && shootClip != null)
-        {
-            audioSource.PlayOneShot(shootClip);
-        }
-
         Debug.Log("Shoot - Ammo left: " + currentAmmo);
 
         for (int i = 0; i < pellets; i++)
         {
-            Vector3 direction = _playerAim.AimPoint - muzzle.position;
+            Vector3 direction = _playerAim != null ? (_playerAim.AimPoint - muzzle.position) : muzzle.forward;
             direction.y = 0f;
             direction.Normalize();
 
             Quaternion rotation = Quaternion.LookRotation(direction);
+
             float randomX = UnityEngine.Random.Range(-spread, spread);
             float randomY = UnityEngine.Random.Range(-spread, spread);
+
             rotation *= Quaternion.Euler(randomX, randomY, 0f);
 
-            GameObject projectile = Instantiate(projectilePrefab, muzzle.position, rotation);
+            GameObject projectile = Instantiate(
+                projectilePrefab,
+                muzzle.position,
+                rotation
+            );
+
             Projectile projectileScript = projectile.GetComponent<Projectile>();
 
             if (projectileScript != null)
@@ -160,6 +174,7 @@ public class Shotgun : Weapon
             }
 
             Rigidbody rb = projectile.GetComponentInChildren<Rigidbody>();
+
             if (rb == null)
             {
                 Destroy(projectile);
@@ -170,49 +185,22 @@ public class Shotgun : Weapon
         }
     }
 
-    private void CancelReload()
-    {
-        if (_reloadCoroutine != null)
-        {
-            StopCoroutine(_reloadCoroutine);
-            _reloadCoroutine = null;
-        }
-
-        _isReloading = false;
-
-        if (_weaponAnimator != null && animateOnReload)
-        {
-            _weaponAnimator.ResetTrigger(reloadAnimationTrigger);
-            _weaponAnimator.Play(idleAnimationState, 0, 0f);
-            _weaponAnimator.Update(0f);
-        }
-
-        Debug.Log("Reload interrupted");
-    }
-
     public override void Reload(Action onReload)
     {
-        if (_isReloading) return;
-        if (currentAmmo >= magazineCapacity) return;
+        if (_isReloading)
+            return;
+
+        if (currentAmmo >= magazineCapacity)
+            return;
 
         AmmoInventory ammoInventory = GetComponentInParent<AmmoInventory>();
 
-        if (ammoInventory == null)
-        {
-            Debug.LogError("AmmoInventory not found in Player");
+        if (ammoInventory == null || !ammoInventory.HasAmmo())
             return;
-        }
 
-        if (!ammoInventory.HasAmmo())
+        if (_weaponAnimator != null && animateOnReload)
         {
-            Debug.Log("No more ammo on reserve");
-            return;
-        }
-
-        if (animateOnReload && _weaponAnimator != null)
-        {
-            _weaponAnimator.ResetTrigger(reloadAnimationTrigger);
-            _weaponAnimator.SetTrigger(reloadAnimationTrigger);
+            _weaponAnimator.SetBool("isReloading", true);
         }
 
         _reloadCoroutine = StartCoroutine(ReloadOneByOne(ammoInventory, onReload));
@@ -228,15 +216,7 @@ public class Shotgun : Weapon
         {
             currentAmmo++;
             ammoInventory.TryUseAmmo();
-
-            // REPRODUCCIÓN DE LA RECARGA (Suena por cada cartucho insertado)
-            if (audioSource != null && reloadClip != null)
-            {
-                audioSource.PlayOneShot(reloadClip);
-            }
-
             onReload?.Invoke();
-            Debug.Log("Reloading... " + currentAmmo + "/" + magazineCapacity);
 
             if (reloadInterval > 0f)
                 yield return new WaitForSeconds(reloadInterval);
@@ -244,10 +224,30 @@ public class Shotgun : Weapon
                 yield return null;
         }
 
+        if (_weaponAnimator != null && animateOnReload)
+        {
+            _weaponAnimator.SetBool("isReloading", false);
+        }
+
         _isReloading = false;
         _reloadCoroutine = null;
+    }
 
-        Debug.Log("Reload complete");
+    private void CancelReload()
+    {
+        if (_reloadCoroutine != null)
+        {
+            StopCoroutine(_reloadCoroutine);
+            _reloadCoroutine = null;
+        }
+
+        _isReloading = false;
+
+        if (_weaponAnimator != null && animateOnReload)
+        {
+            _weaponAnimator.SetBool("isReloading", false);
+            _weaponAnimator.Play(idleAnimationState, 0, 0f);
+        }
     }
 
     public override void Drop(Vector3 dropPosition)
@@ -258,6 +258,7 @@ public class Shotgun : Weapon
         }
 
         _pickedUp = false;
+
         transform.SetParent(null);
         transform.position = dropPosition + transform.forward * 0.8f;
         transform.rotation = Quaternion.identity;
