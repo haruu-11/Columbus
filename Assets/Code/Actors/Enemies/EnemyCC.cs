@@ -7,7 +7,16 @@ public class EnemyCC : MonoBehaviour
     [Header("References")]
     [SerializeField] private Transform player;
 
-    [Header("Settings")]
+    [Header("Audio SFX (Bloque C)")]
+    [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioClip alertClip;   // Sonido cuando te detecta
+    [SerializeField] private AudioClip attackClip;  // Sonido del golpe/mordisco
+
+    [Header("Detection Settings")]
+    [SerializeField] private float detectionRadius = 15f;
+    [SerializeField] private LayerMask obstacleMask;
+
+    [Header("Combat Settings")]
     [SerializeField] private float attackDistance = 2f;
     [SerializeField] private int damage = 15;
     [SerializeField] private float attackRate = 1.5f;
@@ -15,7 +24,10 @@ public class EnemyCC : MonoBehaviour
     private NavMeshAgent _agent;
     private float _nextAttackTime;
     private Health _playerHealth;
+
     private float _sqrAttackDistance;
+    private float _sqrDetectionRadius;
+    private bool _isAggro = false;
 
     private void Start()
     {
@@ -32,8 +44,8 @@ public class EnemyCC : MonoBehaviour
             _playerHealth = player.GetComponent<Health>();
         }
 
-        // Cachear la distancia al cuadrado evita realizar raíces cuadradas en cada frame
         _sqrAttackDistance = attackDistance * attackDistance;
+        _sqrDetectionRadius = detectionRadius * detectionRadius;
     }
 
     private void Update()
@@ -41,6 +53,26 @@ public class EnemyCC : MonoBehaviour
         if (player == null) return;
 
         float sqrDistance = (player.position - transform.position).sqrMagnitude;
+        bool canSeePlayer = (sqrDistance <= _sqrDetectionRadius) && HasLineOfSight();
+
+        if (canSeePlayer)
+        {
+            // Si recién te detecta en este frame, grita.
+            if (!_isAggro)
+            {
+                _isAggro = true;
+                if (sfxSource != null && alertClip != null)
+                {
+                    sfxSource.PlayOneShot(alertClip);
+                }
+            }
+        }
+        else
+        {
+            _isAggro = false;
+            _agent.isStopped = true;
+            return;
+        }
 
         if (sqrDistance > _sqrAttackDistance)
         {
@@ -50,16 +82,7 @@ public class EnemyCC : MonoBehaviour
         else
         {
             _agent.isStopped = true;
-
-            // Suaviza la rotación para que el enemigo siga mirando al jugador mientras ataca
-            Vector3 direction = (player.position - transform.position).normalized;
-            direction.y = 0; // Evitamos que el enemigo se incline hacia arriba o abajo
-
-            if (direction != Vector3.zero)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(direction);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
-            }
+            LookAtPlayer();
 
             if (Time.time >= _nextAttackTime)
             {
@@ -69,8 +92,40 @@ public class EnemyCC : MonoBehaviour
         }
     }
 
+    private bool HasLineOfSight()
+    {
+        Vector3 origin = transform.position + Vector3.up * 1.2f;
+        Vector3 target = player.position + Vector3.up * 1.2f;
+        Vector3 directionToPlayer = (target - origin).normalized;
+        float distance = Vector3.Distance(origin, target);
+
+        if (Physics.Raycast(origin, directionToPlayer, distance, obstacleMask))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    private void LookAtPlayer()
+    {
+        Vector3 direction = (player.position - transform.position).normalized;
+        direction.y = 0;
+        if (direction != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
+        }
+    }
+
     private void AttackPlayer()
     {
+        // Reproduce el sonido de ataque con variación de pitch
+        if (sfxSource != null && attackClip != null)
+        {
+            sfxSource.pitch = Random.Range(0.9f, 1.15f);
+            sfxSource.PlayOneShot(attackClip);
+        }
+
         if (_playerHealth != null)
         {
             _playerHealth.TakeDamage(damage);
