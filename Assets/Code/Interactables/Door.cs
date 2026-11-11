@@ -10,6 +10,12 @@ public class Door : Interactable
     [Header("Required Item")]
     [SerializeField] private KeyData requiredKey;
 
+    [Header("Audio SFX (Bloque C)")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip sonidoAbrir;
+    [SerializeField] private AudioClip sonidoCerrar;
+    [SerializeField] private AudioClip sonidoTrabada; // NUEVO: Audio para puerta con llave
+
     private bool _isOpen;
     private Quaternion _closedRotation;
     private Quaternion _openRotation;
@@ -17,7 +23,6 @@ public class Door : Interactable
     private void Start()
     {
         _closedRotation = transform.rotation;
-
         _openRotation = _closedRotation * Quaternion.Euler(0f, openAngle, 0f);
     }
 
@@ -47,19 +52,36 @@ public class Door : Interactable
             if (!inventory.HasItem(requiredKey))
             {
                 Debug.Log("Necesitas una llave para abrir esta puerta.");
-                return;
+
+                // Reproduce el sonido de picaporte trabado con variación
+                if (audioSource != null && sonidoTrabada != null)
+                {
+                    audioSource.pitch = Random.Range(0.9f, 1.1f);
+                    audioSource.volume = Random.Range(0.85f, 1.0f);
+                    audioSource.PlayOneShot(sonidoTrabada);
+                }
+                return; // Corta la ejecución para que no se abra
             }
         }
 
         _isOpen = !_isOpen;
 
-        if (_isOpen)
+        if (audioSource != null)
         {
-            Debug.Log("Puerta abierta");
-        }
-        else
-        {
-            Debug.Log("Puerta cerrada");
+            // Variación de tono y volumen para abrir/cerrar
+            audioSource.pitch = Random.Range(0.9f, 1.1f);
+            audioSource.volume = Random.Range(0.85f, 1.0f);
+
+            if (_isOpen)
+            {
+                if (sonidoAbrir != null) audioSource.PlayOneShot(sonidoAbrir);
+                Debug.Log("Puerta abierta");
+            }
+            else
+            {
+                if (sonidoCerrar != null) audioSource.PlayOneShot(sonidoCerrar);
+                Debug.Log("Puerta cerrada");
+            }
         }
     }
 }
