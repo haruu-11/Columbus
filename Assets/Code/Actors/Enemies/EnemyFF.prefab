@@ -129,6 +129,7 @@ GameObject:
   - component: {fileID: 3757291714794020869}
   - component: {fileID: 4531046288729553558}
   - component: {fileID: 4900188214906517365}
+  - component: {fileID: -602563563386124564}
   m_Layer: 10
   m_Name: EnemyFF
   m_TagString: Enemy
@@ -409,6 +410,25 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &-602563563386124564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6316476284724213968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ac95e1040f4c814ebb64449dab40fa5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyProximityAudio
+  player: {fileID: 0}
+  ambientSource: {fileID: 0}
+  maxDistance: 20
+  minVolume: 0
+  maxVolume: 0.8
+  fadeSpeed: 1.5
+  refreshInterval: 2
 --- !u!1 &9134171995822009437
 GameObject:
   m_ObjectHideFlags: 0

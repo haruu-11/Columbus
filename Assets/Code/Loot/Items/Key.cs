@@ -20,6 +20,9 @@ public class Key : Loot
             return;
         }
 
+        if (MusicManager.Instance != null)
+            MusicManager.Instance.OnKeyPickedUp();
+
         _pickedUp = true;
 
         inventory.AddItem(keyData);
@@ -27,5 +30,15 @@ public class Key : Loot
         Debug.Log("Llave recogida");
 
         gameObject.SetActive(false);
+    }
+
+    
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            
+            Destroy(gameObject);
+        }
     }
 }
