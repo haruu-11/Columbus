@@ -129,6 +129,7 @@ GameObject:
   - component: {fileID: 3757291714794020869}
   - component: {fileID: 4531046288729553558}
   - component: {fileID: 4900188214906517365}
+  - component: {fileID: -602563563386124564}
   m_Layer: 10
   m_Name: EnemyFF
   m_TagString: Enemy
@@ -271,6 +272,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 4678097685820232742, guid: d6199ca5c4f54b74bb984350a5d3f627, type: 3}
   firePoint: {fileID: 2503422138353258326}
   sfxSource: {fileID: 4900188214906517365}
+  alertClip: {fileID: 8300000, guid: 89b16efa47ce35841b20c45f0263132f, type: 3}
   escupitajoClip: {fileID: 8300000, guid: 0cb2ea7b838723444aa909b7ea250555, type: 3}
   detectionRadius: 15
   obstacleMask:
@@ -368,7 +370,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 1
+      value: 0.5
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -408,6 +410,25 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &-602563563386124564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6316476284724213968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ac95e1040f4c814ebb64449dab40fa5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyProximityAudio
+  player: {fileID: 0}
+  ambientSource: {fileID: 0}
+  maxDistance: 20
+  minVolume: 0
+  maxVolume: 0.8
+  fadeSpeed: 1.5
+  refreshInterval: 2
 --- !u!1 &9134171995822009437
 GameObject:
   m_ObjectHideFlags: 0
