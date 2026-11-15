@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections;
 using UnityEngine;
@@ -11,9 +12,9 @@ public class Shotgun : Weapon
 
     [Header("Audio SFX (Bloque C)")]
     [SerializeField] private AudioSource audioSource;
-    [SerializeField] private AudioClip shootClip;   // Arrastrar Disparo Arma_2.wav
-    [SerializeField] private AudioClip emptyClip;   // Arrastrar Disparar sin Ammo_2.wav
-    [SerializeField] private AudioClip reloadClip;  // Arrastrar Recarga_2.wav
+    [SerializeField] private AudioClip shootClip;
+    [SerializeField] private AudioClip emptyClip;
+    [SerializeField] private AudioClip reloadClip;
 
     [Header("Animation")]
     [SerializeField] private bool animateOnShoot;
@@ -23,6 +24,10 @@ public class Shotgun : Weapon
     [SerializeField] private string idleAnimationState = "Idle";
 
     private Animator _weaponAnimator;
+
+    [Header("Pickup Rotation")]
+    [SerializeField] private bool usePickupRotationOffset = false;
+    [SerializeField] private Vector3 pickupRotationOffset = Vector3.zero;
 
     [Header("Settings")]
     [SerializeField] private int pellets = 6;
@@ -85,7 +90,12 @@ public class Shotgun : Weapon
         _pickedUp = true;
 
         transform.SetParent(weaponHolder);
-        transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+        Quaternion pickupRotation = usePickupRotationOffset
+            ? Quaternion.Euler(pickupRotationOffset)
+            : Quaternion.identity;
+
+        transform.SetLocalPositionAndRotation(Vector3.zero, pickupRotation);
 
         if (_rigidbody != null)
         {
@@ -114,11 +124,12 @@ public class Shotgun : Weapon
         if (currentAmmo <= 0)
         {
             Debug.Log("No ammo in magazine");
+
             if (audioSource != null && emptyClip != null)
             {
                 audioSource.PlayOneShot(emptyClip);
             }
-            // Agregamos un pequeño delay para que no se spammee el sonido de vacío si el jugador aprieta muy rápido
+
             nextFireTime = Time.time + 0.2f;
             return;
         }
@@ -132,7 +143,6 @@ public class Shotgun : Weapon
         nextFireTime = Time.time + fireRate;
         currentAmmo--;
 
-        // REPRODUCCIÓN DEL DISPARO
         if (audioSource != null && shootClip != null)
         {
             audioSource.PlayOneShot(shootClip);
@@ -160,6 +170,7 @@ public class Shotgun : Weapon
             }
 
             Rigidbody rb = projectile.GetComponentInChildren<Rigidbody>();
+
             if (rb == null)
             {
                 Destroy(projectile);
@@ -229,7 +240,6 @@ public class Shotgun : Weapon
             currentAmmo++;
             ammoInventory.TryUseAmmo();
 
-            // REPRODUCCIÓN DE LA RECARGA (Suena por cada cartucho insertado)
             if (audioSource != null && reloadClip != null)
             {
                 audioSource.PlayOneShot(reloadClip);
