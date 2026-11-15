@@ -11,7 +11,7 @@ public class EnemyFF : MonoBehaviour
 
     [Header("Audio SFX (Bloque C)")]
     [SerializeField] private AudioSource sfxSource;
-    [SerializeField] private AudioClip alertClip;       // NUEVO: Sonido cuando te detecta
+    [SerializeField] private AudioClip alertClip;
     [SerializeField] private AudioClip escupitajoClip;
 
     [Header("Detection Settings")]
@@ -30,6 +30,7 @@ public class EnemyFF : MonoBehaviour
     private float _sqrCombatDistance;
     private float _sqrDetectionRadius;
     private bool _isAggro = false;
+    private bool _isRepositioning = false;
 
     private void Start()
     {
@@ -54,7 +55,6 @@ public class EnemyFF : MonoBehaviour
 
         if (canSeePlayer)
         {
-            // Si recién te detecta, grita.
             if (!_isAggro)
             {
                 _isAggro = true;
@@ -67,6 +67,7 @@ public class EnemyFF : MonoBehaviour
         else
         {
             _isAggro = false;
+            _isRepositioning = false;
             _agent.isStopped = true;
             return;
         }
@@ -77,12 +78,25 @@ public class EnemyFF : MonoBehaviour
 
         if (sqrDistance > _sqrCombatDistance)
         {
+            _isRepositioning = false;
             _agent.isStopped = false;
             _agent.SetDestination(player.position);
         }
         else
         {
-            _agent.isStopped = true;
+            // Si estaba reposicionándose, revisamos si ya llegó al destino
+            if (_isRepositioning)
+            {
+                if (!_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance)
+                {
+                    _isRepositioning = false;
+                    _agent.isStopped = true;
+                }
+            }
+            else
+            {
+                _agent.isStopped = true;
+            }
 
             if (Time.time >= _nextFireTime)
             {
@@ -139,6 +153,8 @@ public class EnemyFF : MonoBehaviour
 
         if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, 6f, NavMesh.AllAreas))
         {
+            _isRepositioning = true;
+            _agent.isStopped = false;
             _agent.SetDestination(hit.position);
         }
     }
