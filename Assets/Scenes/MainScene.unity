@@ -19240,6 +19240,18 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 271329031276748921, guid: bc8dde253f4860544836931663c1227a, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.3707901
+      objectReference: {fileID: 0}
+    - target: {fileID: 271329031276748921, guid: bc8dde253f4860544836931663c1227a, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.3707901
+      objectReference: {fileID: 0}
+    - target: {fileID: 271329031276748921, guid: bc8dde253f4860544836931663c1227a, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.3707901
+      objectReference: {fileID: 0}
+    - target: {fileID: 271329031276748921, guid: bc8dde253f4860544836931663c1227a, type: 3}
       propertyPath: m_LocalPosition.x
       value: -68.51962
       objectReference: {fileID: 0}
@@ -19249,7 +19261,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 271329031276748921, guid: bc8dde253f4860544836931663c1227a, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 65.28026
+      value: 65.307
       objectReference: {fileID: 0}
     - target: {fileID: 271329031276748921, guid: bc8dde253f4860544836931663c1227a, type: 3}
       propertyPath: m_LocalRotation.w
@@ -36797,8 +36809,16 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 2476178408900139020, guid: cf18db663e2acd64ea1e3c8ae82b1922, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.1653557
+      objectReference: {fileID: 0}
+    - target: {fileID: 2476178408900139020, guid: cf18db663e2acd64ea1e3c8ae82b1922, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.32794058
+      objectReference: {fileID: 0}
+    - target: {fileID: 2476178408900139020, guid: cf18db663e2acd64ea1e3c8ae82b1922, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.4782301
+      value: 0.3936886
       objectReference: {fileID: 0}
     - target: {fileID: 2476178408900139020, guid: cf18db663e2acd64ea1e3c8ae82b1922, type: 3}
       propertyPath: m_LocalPosition.x
@@ -36806,11 +36826,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2476178408900139020, guid: cf18db663e2acd64ea1e3c8ae82b1922, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.4996505
+      value: 2.4917
       objectReference: {fileID: 0}
     - target: {fileID: 2476178408900139020, guid: cf18db663e2acd64ea1e3c8ae82b1922, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 65.30777
+      value: 65.311
       objectReference: {fileID: 0}
     - target: {fileID: 2476178408900139020, guid: cf18db663e2acd64ea1e3c8ae82b1922, type: 3}
       propertyPath: m_LocalRotation.w
@@ -57150,8 +57170,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 784926cef7b3f664fb6170a193adcda5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  moveSpeed: 8
-  aimingSpeed: 5
+  moveSpeed: 7
+  aimingSpeed: 3
   sprintSpeed: 8
   rotationSmoothTime: 0.033
   speedChangeRate: 8
