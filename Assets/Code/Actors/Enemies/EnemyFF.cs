@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -8,6 +9,7 @@ public class EnemyFF : MonoBehaviour
     [SerializeField] private Transform player;
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private Transform firePoint;
+    [SerializeField] private Animator animator;
 
     [Header("Audio SFX (Bloque C)")]
     [SerializeField] private AudioSource sfxSource;
@@ -36,6 +38,11 @@ public class EnemyFF : MonoBehaviour
     {
         _agent = GetComponent<NavMeshAgent>();
 
+        if (animator == null)
+        {
+            animator = GetComponentInChildren<Animator>(true);
+        }
+
         if (player == null)
         {
             GameObject playerObj = GameObject.FindWithTag("Player");
@@ -58,6 +65,7 @@ public class EnemyFF : MonoBehaviour
             if (!_isAggro)
             {
                 _isAggro = true;
+
                 if (sfxSource != null && alertClip != null)
                 {
                     sfxSource.PlayOneShot(alertClip);
@@ -69,6 +77,7 @@ public class EnemyFF : MonoBehaviour
             _isAggro = false;
             _isRepositioning = false;
             _agent.isStopped = true;
+            UpdateMovementAnimation(false);
             return;
         }
 
@@ -110,6 +119,18 @@ public class EnemyFF : MonoBehaviour
                 _nextRepositionTime = Time.time + repositionCooldown;
             }
         }
+
+        UpdateMovementAnimation(
+            !_agent.isStopped && _agent.velocity.sqrMagnitude > 0.01f
+        );
+    }
+
+    private void UpdateMovementAnimation(bool isMoving)
+    {
+        if (animator != null)
+        {
+            animator.SetBool("isMoving", isMoving);
+        }
     }
 
     private bool HasLineOfSight()
@@ -123,6 +144,7 @@ public class EnemyFF : MonoBehaviour
         {
             return false;
         }
+
         return true;
     }
 
@@ -130,7 +152,17 @@ public class EnemyFF : MonoBehaviour
     {
         if (projectilePrefab != null && firePoint != null)
         {
-            GameObject projectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
+            if (animator != null)
+            {
+                animator.ResetTrigger("Attack");
+                animator.SetTrigger("Attack");
+            }
+
+            GameObject projectile = Instantiate(
+                projectilePrefab,
+                firePoint.position,
+                firePoint.rotation
+            );
 
             if (projectile.TryGetComponent<EnemyProjectile>(out var projectileScript))
             {
