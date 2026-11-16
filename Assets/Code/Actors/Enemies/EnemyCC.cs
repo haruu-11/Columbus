@@ -61,6 +61,10 @@ public class EnemyCC : MonoBehaviour
             if (!_isAggro)
             {
                 _isAggro = true;
+
+                if (MusicManager.Instance != null)
+                    MusicManager.Instance.OnEnemySpotted();
+
                 if (sfxSource != null && alertClip != null)
                 {
                     sfxSource.PlayOneShot(alertClip);
@@ -69,7 +73,13 @@ public class EnemyCC : MonoBehaviour
         }
         else
         {
-            _isAggro = false;
+            if (_isAggro)
+            {
+                _isAggro = false;
+
+                if (MusicManager.Instance != null)
+                    MusicManager.Instance.OnEnemyLostPlayer();
+            }
             _agent.isStopped = true;
             return;
         }
@@ -131,4 +141,16 @@ public class EnemyCC : MonoBehaviour
             _playerHealth.TakeDamage(damage);
         }
     }
+
+    private void OnDisable()
+    {
+        if (_isAggro)
+        {
+            _isAggro = false;
+
+            if (MusicManager.Instance != null)
+                MusicManager.Instance.OnEnemyLostPlayer();
+        }
+    }
+
 }
