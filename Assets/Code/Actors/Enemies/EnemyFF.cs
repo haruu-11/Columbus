@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -8,10 +9,11 @@ public class EnemyFF : MonoBehaviour
     [SerializeField] private Transform player;
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private Transform firePoint;
+    [SerializeField] private Animator animator;
 
     [Header("Audio SFX (Bloque C)")]
     [SerializeField] private AudioSource sfxSource;
-    [SerializeField] private AudioClip alertClip;       // NUEVO: Sonido cuando te detecta
+    [SerializeField] private AudioClip alertClip;
     [SerializeField] private AudioClip escupitajoClip;
 
     [Header("Detection Settings")]
@@ -30,10 +32,16 @@ public class EnemyFF : MonoBehaviour
     private float _sqrCombatDistance;
     private float _sqrDetectionRadius;
     private bool _isAggro = false;
+    private bool _isRepositioning = false;
 
     private void Start()
     {
         _agent = GetComponent<NavMeshAgent>();
+
+        if (animator == null)
+        {
+            animator = GetComponentInChildren<Animator>(true);
+        }
 
         if (player == null)
         {
@@ -54,10 +62,10 @@ public class EnemyFF : MonoBehaviour
 
         if (canSeePlayer)
         {
-            // Si recién te detecta, grita.
             if (!_isAggro)
             {
                 _isAggro = true;
+
                 if (sfxSource != null && alertClip != null)
                 {
                     sfxSource.PlayOneShot(alertClip);
@@ -67,7 +75,9 @@ public class EnemyFF : MonoBehaviour
         else
         {
             _isAggro = false;
+            _isRepositioning = false;
             _agent.isStopped = true;
+            UpdateMovementAnimation(false);
             return;
         }
 
@@ -77,12 +87,25 @@ public class EnemyFF : MonoBehaviour
 
         if (sqrDistance > _sqrCombatDistance)
         {
+            _isRepositioning = false;
             _agent.isStopped = false;
             _agent.SetDestination(player.position);
         }
         else
         {
-            _agent.isStopped = true;
+            // Si estaba reposicionándose, revisamos si ya llegó al destino
+            if (_isRepositioning)
+            {
+                if (!_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance)
+                {
+                    _isRepositioning = false;
+                    _agent.isStopped = true;
+                }
+            }
+            else
+            {
+                _agent.isStopped = true;
+            }
 
             if (Time.time >= _nextFireTime)
             {
@@ -95,6 +118,18 @@ public class EnemyFF : MonoBehaviour
                 Reposition();
                 _nextRepositionTime = Time.time + repositionCooldown;
             }
+        }
+
+        UpdateMovementAnimation(
+            !_agent.isStopped && _agent.velocity.sqrMagnitude > 0.01f
+        );
+    }
+
+    private void UpdateMovementAnimation(bool isMoving)
+    {
+        if (animator != null)
+        {
+            animator.SetBool("isMoving", isMoving);
         }
     }
 
@@ -109,6 +144,7 @@ public class EnemyFF : MonoBehaviour
         {
             return false;
         }
+
         return true;
     }
 
@@ -116,7 +152,17 @@ public class EnemyFF : MonoBehaviour
     {
         if (projectilePrefab != null && firePoint != null)
         {
-            GameObject projectile = Instantiate(projectilePrefab, firePoint.position, firePoint.rotation);
+            if (animator != null)
+            {
+                animator.ResetTrigger("Attack");
+                animator.SetTrigger("Attack");
+            }
+
+            GameObject projectile = Instantiate(
+                projectilePrefab,
+                firePoint.position,
+                firePoint.rotation
+            );
 
             if (projectile.TryGetComponent<EnemyProjectile>(out var projectileScript))
             {
@@ -139,6 +185,8 @@ public class EnemyFF : MonoBehaviour
 
         if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, 6f, NavMesh.AllAreas))
         {
+            _isRepositioning = true;
+            _agent.isStopped = false;
             _agent.SetDestination(hit.position);
         }
     }

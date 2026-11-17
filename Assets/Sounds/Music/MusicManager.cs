@@ -17,6 +17,8 @@ public class MusicManager : MonoBehaviour
 
     private bool hasKey;
 
+    private int _enemiesChasing;
+
     void Awake()
     {
         Instance = this;
@@ -29,11 +31,16 @@ public class MusicManager : MonoBehaviour
 
     public void OnEnemySpotted()
     {
+        _enemiesChasing++;
         chase.TransitionTo(toChaseTime);
     }
 
     public void OnEnemyLostPlayer()
     {
+        _enemiesChasing = Mathf.Max(0, _enemiesChasing - 1);
+
+        if (_enemiesChasing > 0) return;
+
         if (hasKey) keyFound.TransitionTo(toKeyTime);
         else explore.TransitionTo(toExploreTime);
     }
