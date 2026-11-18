@@ -1,3 +1,4 @@
+
 using UnityEngine;
 
 public class CodeButton : Interactable
@@ -5,19 +6,28 @@ public class CodeButton : Interactable
     [Header("Puzzle Reference")]
     [SerializeField] private CodePuzzle codePuzzle;
 
+    [Header("Keypad Reference")]
+    [SerializeField] private CodeKeypad codeKeypad;
+
     public override void Interact()
     {
-        if (!codePuzzle.HasCompleteCode)
+        if (codeKeypad == null)
         {
-            Debug.Log("You don't have the complete code.");
+            Debug.LogWarning("CodeKeypad is not assigned.");
             return;
         }
 
-        Debug.Log("Enter the code.");
+        codeKeypad.Open(this);
     }
 
     public bool TryCode(string code)
     {
+        if (codePuzzle == null)
+        {
+            Debug.LogWarning("CodePuzzle is not assigned.");
+            return false;
+        }
+
         if (!codePuzzle.CheckCode(code))
         {
             Debug.Log("Incorrect code.");
@@ -31,6 +41,6 @@ public class CodeButton : Interactable
 
     private void ActivateMechanism()
     {
-     
+
     }
 }
