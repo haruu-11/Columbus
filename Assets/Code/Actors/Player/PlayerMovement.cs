@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -28,6 +29,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private InputActionReference moveAction;
     [SerializeField] private InputActionReference sprintAction;
 
+    [Header("Footsteps")]
+    [SerializeField] private AudioSource footstepAudio;
+    [SerializeField] private float walkingStepInterval = 0.55f;
+    [SerializeField] private float aimingStepInterval = 0.65f;
+    [SerializeField] private float sprintStepInterval = 0.32f;
+
     private CharacterController _controller;
     private PlayerAim _playerAim;
     private Transform _cameraTransform;
@@ -39,6 +46,8 @@ public class PlayerMovement : MonoBehaviour
     private float _speed;
     private float _targetRotation = 0.0f;
     private float _rotationVelocity;
+
+    private float _footstepTimer;
 
     public bool IsMoving => _moveDirection.sqrMagnitude > 0.01f;
 
@@ -54,6 +63,7 @@ public class PlayerMovement : MonoBehaviour
         ReadInput();
         ApplyGravity();
         Move();
+        UpdateFootsteps();
     }
 
     private void ReadInput()
@@ -166,5 +176,39 @@ public class PlayerMovement : MonoBehaviour
 
         Vector3 motion = targetDirection.normalized * _speed + new Vector3(0.0f, _verticalVelocity, 0.0f);
         _controller.Move(motion * Time.deltaTime);
+    }
+
+    private void UpdateFootsteps()
+    {
+        if (footstepAudio == null || footstepAudio.clip == null)
+            return;
+
+        Vector3 horizontalVelocity = new Vector3(
+            _controller.velocity.x,
+            0f,
+            _controller.velocity.z
+        );
+
+        bool isActuallyMoving = horizontalVelocity.magnitude > 0.5f;
+
+        if (!_controller.isGrounded || !isActuallyMoving)
+        {
+            _footstepTimer = 0f;
+            return;
+        }
+
+        bool isAiming = _playerAim != null && _playerAim.IsAiming;
+
+        float interval = isAiming
+            ? aimingStepInterval
+            : (_sprint ? sprintStepInterval : walkingStepInterval);
+
+        _footstepTimer += Time.deltaTime;
+
+        if (_footstepTimer >= interval)
+        {
+            footstepAudio.PlayOneShot(footstepAudio.clip);
+            _footstepTimer = 0f;
+        }
     }
 }
