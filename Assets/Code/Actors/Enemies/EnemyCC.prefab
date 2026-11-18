@@ -4960,8 +4960,8 @@ Transform:
   m_GameObject: {fileID: 6871026923597042654}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -65.2, y: 3, z: 73.6}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -65.197, y: 3, z: 73.6}
+  m_LocalScale: {x: 1.0354, y: 1.1871897, z: 1.0354}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6772497740273466907}
@@ -5045,7 +5045,7 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.5
-  m_Height: 2
+  m_Height: 3
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!195 &8793489514551067863
@@ -5058,7 +5058,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 3.5
+  m_Speed: 3
   m_Acceleration: 50
   avoidancePriority: 50
   m_AngularSpeed: 360
@@ -5106,7 +5106,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61998fd10ef1e08419dd1ea2eb173e20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Health
-  maxHealth: 40
+  maxHealth: 15
   bloodParticles: {fileID: 5891091593529077503}
   sfxSource: {fileID: 4864946224514768330}
   damageClips:
