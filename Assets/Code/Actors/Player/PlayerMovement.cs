@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,23 +5,13 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement")]
-    [Tooltip("Move speed of the character in m/s")]
     [SerializeField] private float moveSpeed = 5f;
-
-    [Tooltip("Move speed while aiming")]
     [SerializeField] private float aimingSpeed = 2.5f;
-
-    [Tooltip("Sprint speed of the character in m/s")]
     [SerializeField] private float sprintSpeed = 10f;
-
-    [Tooltip("How fast the character turns to face movement direction")]
-    [SerializeField][Range(0.0f, 0.3f)] private float rotationSmoothTime = 0.12f;
-
-    [Tooltip("Acceleration and deceleration")]
-    [SerializeField] private float speedChangeRate = 10.0f;
+    [SerializeField, Range(0f, 0.3f)] private float rotationSmoothTime = 0.12f;
+    [SerializeField] private float speedChangeRate = 10f;
 
     [Header("Gravity")]
-    [Tooltip("Fuerza de la gravedad aplicada al jugador")]
     [SerializeField] private float gravity = -9.81f;
 
     [Header("Input References")]
@@ -41,12 +30,11 @@ public class PlayerMovement : MonoBehaviour
 
     private Vector2 _moveDirection;
     private float _verticalVelocity;
-
     private bool _sprint;
-    private float _speed;
-    private float _targetRotation = 0.0f;
-    private float _rotationVelocity;
 
+    private float _speed;
+    private float _targetRotation;
+    private float _rotationVelocity;
     private float _footstepTimer;
 
     public bool IsMoving => _moveDirection.sqrMagnitude > 0.01f;
@@ -55,6 +43,7 @@ public class PlayerMovement : MonoBehaviour
     {
         _controller = GetComponent<CharacterController>();
         _playerAim = GetComponent<PlayerAim>();
+
         UpdateCameraReference();
     }
 
@@ -81,7 +70,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void ApplyGravity()
     {
-        if (_controller.isGrounded && _verticalVelocity < 0)
+        if (_controller.isGrounded && _verticalVelocity < 0f)
         {
             _verticalVelocity = -2f;
         }
@@ -93,7 +82,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void UpdateCameraReference()
     {
-        if (_cameraTransform == null || !_cameraTransform.gameObject.activeInHierarchy)
+        if (_cameraTransform == null ||
+            !_cameraTransform.gameObject.activeInHierarchy)
         {
             if (Camera.main != null)
             {
@@ -107,19 +97,20 @@ public class PlayerMovement : MonoBehaviour
         UpdateCameraReference();
 
         bool isAiming = _playerAim != null && _playerAim.IsAiming;
-        float targetSpeed = isAiming ? aimingSpeed : (_sprint ? sprintSpeed : moveSpeed);
+
+        float targetSpeed = isAiming
+            ? aimingSpeed
+            : (_sprint ? sprintSpeed : moveSpeed);
 
         if (_moveDirection == Vector2.zero)
         {
-            targetSpeed = 0.0f;
+            targetSpeed = 0f;
         }
 
-        float currentHorizontalSpeed = new Vector3(
-            _controller.velocity.x,
-            0.0f,
-            _controller.velocity.z
-        ).magnitude;
+        Vector3 currentVelocity = _controller.velocity;
+        currentVelocity.y = 0f;
 
+        float currentHorizontalSpeed = currentVelocity.magnitude;
         float speedOffset = 0.1f;
 
         if (currentHorizontalSpeed < targetSpeed - speedOffset ||
@@ -138,30 +129,34 @@ public class PlayerMovement : MonoBehaviour
             _speed = targetSpeed;
         }
 
-        // Si soltó el control, frenamos la velocidad horizontal inmediatamente
         if (_moveDirection == Vector2.zero)
         {
-            _speed = 0.0f;
+            _speed = 0f;
         }
 
         Vector3 targetDirection = Vector3.zero;
 
-        if (_moveDirection != Vector2.zero && _cameraTransform != null)
+        if (_moveDirection != Vector2.zero &&
+            _cameraTransform != null)
         {
             Vector3 cameraForward = _cameraTransform.forward;
             Vector3 cameraRight = _cameraTransform.right;
 
-            cameraForward.y = 0.0f;
-            cameraRight.y = 0.0f;
+            cameraForward.y = 0f;
+            cameraRight.y = 0f;
 
             cameraForward.Normalize();
             cameraRight.Normalize();
 
-            targetDirection = cameraForward * _moveDirection.y + cameraRight * _moveDirection.x;
+            targetDirection =
+                cameraForward * _moveDirection.y +
+                cameraRight * _moveDirection.x;
 
             if (targetDirection != Vector3.zero)
             {
-                _targetRotation = Mathf.Atan2(targetDirection.x, targetDirection.z) * Mathf.Rad2Deg;
+                _targetRotation =
+                    Mathf.Atan2(targetDirection.x, targetDirection.z) *
+                    Mathf.Rad2Deg;
 
                 float rotation = Mathf.SmoothDampAngle(
                     transform.eulerAngles.y,
@@ -170,24 +165,27 @@ public class PlayerMovement : MonoBehaviour
                     rotationSmoothTime
                 );
 
-                transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
+                transform.rotation =
+                    Quaternion.Euler(0f, rotation, 0f);
             }
         }
 
-        Vector3 motion = targetDirection.normalized * _speed + new Vector3(0.0f, _verticalVelocity, 0.0f);
+        Vector3 motion =
+            targetDirection.normalized * _speed +
+            Vector3.up * _verticalVelocity;
+
         _controller.Move(motion * Time.deltaTime);
     }
 
     private void UpdateFootsteps()
     {
         if (footstepAudio == null || footstepAudio.clip == null)
+        {
             return;
+        }
 
-        Vector3 horizontalVelocity = new Vector3(
-            _controller.velocity.x,
-            0f,
-            _controller.velocity.z
-        );
+        Vector3 horizontalVelocity = _controller.velocity;
+        horizontalVelocity.y = 0f;
 
         bool isActuallyMoving = horizontalVelocity.magnitude > 0.5f;
 
