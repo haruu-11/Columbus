@@ -14,6 +14,36 @@ AudioMixerEffectController:
   m_SendTarget: {fileID: 0}
   m_EnableWetMix: 0
   m_Bypass: 0
+--- !u!244 &-7804633028479501987
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: f27b758286864124c89cd5edab21899c
+  m_EffectName: Chorus
+  m_MixLevel: 9189b14d8f814524083c58c829fa5949
+  m_Parameters:
+  - m_ParameterName: Dry mix
+    m_GUID: 168d37528ae214f43a70b1f305daf9cf
+  - m_ParameterName: Wet mix tap 1
+    m_GUID: 6b6e56981ec1a604abf0c069b19bd4c9
+  - m_ParameterName: Wet mix tap 2
+    m_GUID: 59105ab28d8a4ee41bfefdcd29544b80
+  - m_ParameterName: Wet mix tap 3
+    m_GUID: 6a9b43c9b72d04a41b4523745d3d0dfd
+  - m_ParameterName: Delay
+    m_GUID: 90a220a03203d8b4cbee3ba9b88253d3
+  - m_ParameterName: Rate
+    m_GUID: ef8624a28b79dd342a338bc09f7c285d
+  - m_ParameterName: Depth
+    m_GUID: 0323ce09441708b4aa4efcb6a06549f0
+  - m_ParameterName: Feedback
+    m_GUID: 6f33241ee1e1b214ea34001000baef52
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
 --- !u!243 &-7567036491473533993
 AudioMixerGroupController:
   m_ObjectHideFlags: 0
@@ -255,7 +285,7 @@ AudioMixerSnapshotController:
     0a684861fe8b2ed48970fbbe9b218213: -1.7612991
     4b892c055b32af9408e733e9b47260a6: -80
     2f2089b775f237442a99b47778a2e370: -14.816608
-    0eddfe383e3594c45ba565fcdafcadcd: 2.0025296
+    0eddfe383e3594c45ba565fcdafcadcd: 0.3945702
     a35c9a68cf02b5e488b66df4757bca4a: 0
   m_TransitionOverrides: {}
 --- !u!244 &-436119643922562257
@@ -306,6 +336,7 @@ AudioMixerGroupController:
   m_Send: 00000000000000000000000000000000
   m_Effects:
   - {fileID: -436119643922562257}
+  - {fileID: -7804633028479501987}
   m_UserColorIndex: 0
   m_Mute: 0
   m_Solo: 0
@@ -316,7 +347,7 @@ AudioMixerController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: NewAudioMixer
+  m_Name: AudioMixer
   m_OutputGroup: {fileID: 0}
   m_MasterGroup: {fileID: 24300002}
   m_Snapshots:
@@ -398,8 +429,8 @@ AudioMixerSnapshotController:
   m_FloatValues:
     1d04675101c20454e8778477cf0ce66b: -80
     0a684861fe8b2ed48970fbbe9b218213: -0.54210335
-    4b892c055b32af9408e733e9b47260a6: -26.404226
-    2f2089b775f237442a99b47778a2e370: 11.575977
+    4b892c055b32af9408e733e9b47260a6: -4.5603485
+    2f2089b775f237442a99b47778a2e370: 5.876742
     0eddfe383e3594c45ba565fcdafcadcd: -80
     a35c9a68cf02b5e488b66df4757bca4a: -1.7612991
   m_TransitionOverrides: {}
