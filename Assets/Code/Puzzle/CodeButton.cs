@@ -1,5 +1,6 @@
 
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CodeButton : Interactable
 {
@@ -41,6 +42,6 @@ public class CodeButton : Interactable
 
     private void ActivateMechanism()
     {
-
+        SceneManager.LoadScene("Victoria");
     }
 }

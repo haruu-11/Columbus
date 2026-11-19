@@ -15,6 +15,8 @@ public class PlayerInteraction : MonoBehaviour
 
         if (closestInteractable != null && interactAction.action.WasPressedThisFrame())
         {
+            Debug.Log("Tecla de interacción pulsada. Objeto: " + closestInteractable.name);
+
             closestInteractable.Interact();
         }
     }
