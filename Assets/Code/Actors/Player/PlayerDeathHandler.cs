@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerDeathHandler : MonoBehaviour, IDeathHandler
@@ -33,7 +34,7 @@ public class PlayerDeathHandler : MonoBehaviour, IDeathHandler
 
         if (_availableSpawnPoints.Count == 0)
         {
-            Destroy(gameObject);
+            SceneManager.LoadScene("Derrota");
             return;
         }
 

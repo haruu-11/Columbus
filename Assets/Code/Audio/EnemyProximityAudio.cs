@@ -10,7 +10,7 @@ public class EnemyProximityAudio : MonoBehaviour
 
     [Header("Distance Settings")]
     [SerializeField] private float maxDistance = 20f;
-    [SerializeField, Range(0f, 1f)] private float minVolume = 0f;
+    [SerializeField, Range(0f, 1f)] private float minVolume = 0.2f;
     [SerializeField, Range(0f, 1f)] private float maxVolume = 0.8f;
     [SerializeField] private float fadeSpeed = 1f;
     [SerializeField] private float refreshInterval = 1f;

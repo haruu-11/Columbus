@@ -23,6 +23,18 @@ public class NPCVoice : MonoBehaviour
         if (_isPlaying)
             return;
 
+        if (audioSource == null)
+        {
+            Debug.LogError("NPCVoice: AudioSource is not assigned.", this);
+            return;
+        }
+
+        if (!audioSource.enabled || !audioSource.gameObject.activeInHierarchy)
+        {
+            Debug.LogError("NPCVoice: AudioSource is disabled or inactive.", this);
+            return;
+        }
+
         StartCoroutine(PlayDialogueCoroutine());
     }
 
@@ -30,40 +42,60 @@ public class NPCVoice : MonoBehaviour
     {
         _isPlaying = true;
 
-        if (!_hasFinishedDialogue)
+        try
         {
-            foreach (DialogueLine line in dialogueLines)
+            if (!_hasFinishedDialogue)
             {
-                yield return PlayLine(line);
+                foreach (DialogueLine line in dialogueLines)
+                {
+                    yield return PlayLine(line);
 
-                if (line.variations != null && line.variations.Length > 0)
-                    yield return new WaitForSeconds(pauseBetweenLines);
+                    if (line != null &&
+                        line.variations != null &&
+                        line.variations.Length > 0)
+                    {
+                        yield return new WaitForSeconds(pauseBetweenLines);
+                    }
+                }
+
+                _hasFinishedDialogue = true;
             }
-
-            _hasFinishedDialogue = true;
+            else
+            {
+                yield return PlayLine(codeLine);
+            }
         }
-        else
+        finally
         {
-            yield return PlayLine(codeLine);
+            _isPlaying = false;
         }
-
-        _isPlaying = false;
     }
 
     private IEnumerator PlayLine(DialogueLine line)
     {
-        if (line.variations == null || line.variations.Length == 0)
+        Debug.Log("PlayLine ejecutado");
+
+        if (line == null || line.variations == null || line.variations.Length == 0)
+        {
+            Debug.LogWarning("La línea no tiene variaciones.");
             yield break;
+        }
 
         AudioClip clip = line.variations[
             Random.Range(0, line.variations.Length)
         ];
 
         if (clip == null)
+        {
+            Debug.LogWarning("El AudioClip seleccionado es null.");
             yield break;
+        }
+
+        Debug.Log($"Intentando reproducir: {clip.name}");
 
         audioSource.PlayOneShot(clip);
 
         yield return new WaitForSeconds(clip.length);
     }
 }
+    

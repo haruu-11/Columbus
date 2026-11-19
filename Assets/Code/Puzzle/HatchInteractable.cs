@@ -7,6 +7,14 @@ public class HatchInteractable : Interactable
 
     public override void Interact()
     {
+        Debug.Log("HatchInteractable: Interact ejecutado");
+
+        if (npcVoice == null)
+        {
+            Debug.LogError("NPCVoice no está asignado en HatchInteractable.");
+            return;
+        }
+
         npcVoice.PlayDialogue();
     }
 }
