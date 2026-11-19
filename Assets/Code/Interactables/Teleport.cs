@@ -4,6 +4,10 @@ public class Teletransporte : MonoBehaviour
 {
     [SerializeField] Transform destino;
 
+    [SerializeField] bool usarTecla = false;
+    [SerializeField]
+    KeyCode tecla = KeyCode.E;
+
     void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player")) return;
@@ -30,4 +34,6 @@ public class Teletransporte : MonoBehaviour
 
         if (cc != null) cc.enabled = true;
     }
+
+
 }
